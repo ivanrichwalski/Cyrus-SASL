@@ -425,16 +425,14 @@ static int write_wait(int fd, unsigned delta)
 	    /* Timeout. */
 	    errno = ETIMEDOUT;
 	    return -1;
-	case +1:
-	    if (FD_ISSET(fd, &wfds)) {
-		/* Success, file descriptor is writable. */
-		return 0;
-	    }
-	    return -1;
 	case -1:
 	    if (errno == EINTR || errno == EAGAIN)
 		continue;
 	default:
+	    if (FD_ISSET(fd, &wfds)) {
+		/* Success, file descriptor is writable. */
+		return 0;
+	    }
 	    /* Error catch-all. */
 	    return -1;
 	}
@@ -587,16 +585,14 @@ static int read_wait(int fd, unsigned delta)
 	    /* Timeout. */
 	    errno = ETIMEDOUT;
 	    return -1;
-	case +1:
+	case -1:
+	    if (errno == EINTR || errno == EAGAIN)
+		continue;
+	case default:
 	    if (FD_ISSET(fd, &rfds)) {
 		/* Success, file descriptor is readable. */
 		return 0;
 	    }
-	    return -1;
-	case -1:
-	    if (errno == EINTR || errno == EAGAIN)
-		continue;
-	default:
 	    /* Error catch-all. */
 	    return -1;
 	}
